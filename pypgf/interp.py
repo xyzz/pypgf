@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.signal import decimate
-l = range(128)
-print l
+l = list(range(128))
+print(l)
 
 def downsample(l, factor):
    chunks = len(l)/factor
@@ -13,4 +13,4 @@ def downsample(l, factor):
 
    return new_l
 
-print downsample(l, 32)
+print(downsample(l, 32))

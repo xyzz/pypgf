@@ -7,7 +7,7 @@
 # warranty.  You should have received a copy of the CC0 Public Domain
 # Dedication along with this software. If not, see
 # <http://creativecommons.org/publicdomain/zero/1.0/>.
-from __future__ import print_function
+
 from array import array
 from collections import OrderedDict
 from bitstring import ConstBitStream
@@ -62,7 +62,7 @@ class BitField(object):
       bit_ptr = self.start_pos
       for i in range(self.num_bits):
          bit_shift = bit_ptr % 8
-         value += ((self._array[bit_ptr/8] >> bit_shift) & 0x1) << i
+         value += ((self._array[bit_ptr//8] >> bit_shift) & 0x1) << i
          bit_ptr += 1
       return value
 
@@ -89,7 +89,7 @@ class Table(object):
 
    @property
    def size(self):
-      return ((self.entries * self.bpe + 31) & ~31) / 8
+      return ((self.entries * self.bpe + 31) & ~31) // 8
 
    def __getitem__(self, item):
       if not isinstance(item, int):
@@ -103,7 +103,7 @@ class Table(object):
       val = 0
       for i in range(self.bpe):
          bit_shift = (bit_ptr % 8)
-         val +=  ((self._array[bit_ptr/8] >> bit_shift) & 0x1) << i
+         val +=  ((self._array[bit_ptr//8] >> bit_shift) & 0x1) << i
          bit_ptr += 1
 
       log.debug('Value is %d' % (val,))
@@ -166,11 +166,11 @@ class GlyphInfo(object):
       bit_ptr += 8
       
       self.advptr = (adv.val * 2)
-      log.debug('adv' + str( pgf_font.tables['adv_tab'][(adv.val) * 2]/16))
+      log.debug('adv' + str( pgf_font.tables['adv_tab'][(adv.val) * 2]//16))
       self.horiz_adv = pgf_font.tables['adv_tab'][(adv.val) * 2]
 
       log.info('Parsed glyph' + str( self))
-      self.ptr = bit_ptr / 8
+      self.ptr = bit_ptr // 8
 
    @property
    def flag_str(self):
@@ -239,9 +239,9 @@ class CharInfo(object):
                elif j == 0: pass
                if horiz_rows:
                   xx = i%self.width
-                  yy = i/self.width
+                  yy = i//self.width
                else:
-                  xx = i/self.height
+                  xx = i//self.height
                   yy = i%self.height
                i += 1
                if i >= self.width * self.height:
@@ -261,7 +261,7 @@ class CharInfo(object):
 
    def __repr__(self):
       char = self.char
-      char = unichr(char)
+      char = chr(char)
       return 'CharInfo(char="%s", width=%s, height=%s, top=%s, left=%s)' % \
           (char, self.width, self.height, self.top, self.left)
       
@@ -278,7 +278,7 @@ class FontData(object):
       val = 0
       for i in range(bits):
          bit_shift = (bit_ptr % 8)
-         val += ((self._array[bit_ptr/8] >> bit_shift) & 0x1) << i
+         val += ((self._array[bit_ptr//8] >> bit_shift) & 0x1) << i
          bit_ptr += 1
       return val
 
@@ -360,7 +360,7 @@ class PGFFont(object):
       obj.bits = bits
 
       log.info('Parsing Font Information')
-      obj._size = bits.len / 8
+      obj._size = bits.len // 8
       for (field_name, fmt_str, offset) in PGFFont._fields_:
          assert bits.bytepos == offset, \
              'Incorrect offset while parsing field %s: %x\n%s' % \
@@ -386,10 +386,10 @@ class PGFFont(object):
          log.debug('Parsed table offset:%x - name=%s - %s' % 
                    (bits.bytepos, name, obj.tables[name]))
 
-      obj.fontdatasize = (bits.len - bits.pos)/8
+      obj.fontdatasize = (bits.len - bits.pos)//8
       obj.fontdata     = FontData(obj, bits, obj.fontdatasize)
 
-      char = obj.tables['charmap'][ord(u'o')]
+      char = obj.tables['charmap'][ord('o')]
       return obj
 
    def get_str_metrics(self, s):
@@ -427,7 +427,7 @@ class PGFFont(object):
             cur_end += 1
          intervals.append((cur_start, cur_end))
          if cur_start == cur_end:
-            assert ValueError('Unable to layout line')
+            raise ValueError('Unable to layout line')
          cur_start = cur_end
       for (start, end) in intervals:
          i = start
@@ -492,8 +492,8 @@ if '__main__' == __name__:
    for line_no, line in enumerate(text):
       processed = line.strip('\n').strip('\r')
       processed = processed.replace('\n\n', '\n')
-      processed = processed.decode('utf-8')
+      #processed = processed.decode('utf-8')
       chunks = p.wrap_text(processed, w, h)
       for (i, subline) in enumerate(chunks):
-         csv.write('%-3s | %s | %-8s | %s\r\n' % (line_no, i, '', subline.encode('utf-8')))
+         csv.write('%-3s | %s | %-8s | %s\r\n' % (line_no, i, '', subline))
    csv.close()
